@@ -104,7 +104,7 @@ def ubike_weather_merge():
             
             #delete unnecessary field
             wdata2_short = wdata2.drop(columns=cfg.weather_feature_s1)
-            wdata1_short = wdata1.drop(columns=cfg.weather_feature_s2 +　['location'])
+            wdata1_short = wdata1.drop(columns=cfg.weather_feature_s2+['location'])
         
             weather_group = pd.merge(wdata1_short,wdata2_short,left_index=True, right_index=True)
             weather_group = weather_group.drop(columns=['locationName_x','locationName_y','location','stationId_x','stationId_y'])

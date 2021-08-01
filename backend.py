@@ -2,7 +2,6 @@ import json
 import datetime
 import sys
 
-sys.path.append("Refactor3/parser/")
 sys.path.append("parser/")
 from youbike_processor import YoubikeProcessor
 from weather_processor import WeatherProcessor

@@ -29,7 +29,7 @@ def GetUbikeDataThread():
             urllib.request.urlretrieve(ubike_url, "YouBikeTP.json")
 
             try:
-               shutil.copyfile("YouBikeTP.json",cfg.rdata_folder + "YouBikeTPNow.json")
+               shutil.copyfile("YouBikeTP.json",cfg.raw_file_path + "YouBikeTPNow.json")
             except IOError as e:
                print("Unable to copy file. %s" % e)
             except Exception as e:
@@ -40,7 +40,7 @@ def GetUbikeDataThread():
             st = datetime.datetime.fromtimestamp(ts).strftime('%Y_%m_%d_%H_%M_%S')
             fname = "YouBikeTP_" + st + ".json"
             os.rename("YouBikeTP.json",fname)
-            shutil.move(fname,cfg.rdata_folder + "youbike_data/")
+            shutil.move(fname,cfg.raw_file_path + "youbike_data/")
             print("get file : "+fname)
 
             time.sleep(ONE_MIN)    #every minites
@@ -67,7 +67,7 @@ def GetWeatherThread():
         try:
             urllib.request.urlretrieve(weather_url,"weather_data.json")
             try:
-               shutil.copyfile("weather_data.json",cfg.rdata_folder + "WeatherDataNow.json")
+               shutil.copyfile("weather_data.json",cfg.raw_file_path + "WeatherDataNow.json")
             except IOError as e:
                print("Unable to copy file. %s" % e)
             except:
@@ -77,7 +77,7 @@ def GetWeatherThread():
             st = datetime.datetime.fromtimestamp(ts).strftime('%Y_%m_%d_%H_%M_%S')
             fname = "weather_data_" + st + ".json"
             os.rename("weather_data.json",fname)
-            shutil.move(fname,cfg.rdata_folder +"weather_data/")
+            shutil.move(fname,cfg.raw_file_path +"weather_data/")
             print("get file : "+fname)
 
 
@@ -101,7 +101,7 @@ def GetWeather2Thread():
         try:
             urllib.request.urlretrieve(weather2_url, "weather_data2.json")
             try:
-               shutil.copyfile("weather_data2.json",cfg.rdata_folder +"WeatherDataNow2.json")
+               shutil.copyfile("weather_data2.json",cfg.raw_file_path +"WeatherDataNow2.json")
             except IOError as e:
                print("Unable to copy file. %s" % e)
             except:
@@ -111,7 +111,7 @@ def GetWeather2Thread():
             st = datetime.datetime.fromtimestamp(ts).strftime('%Y_%m_%d_%H_%M_%S')
             fname = "weather2_data_" + st + ".json"
             os.rename("weather_data2.json",fname)
-            shutil.move(fname,cfg.rdata_folder+"weather2_data/")
+            shutil.move(fname,cfg.raw_file_path+"weather2_data/")
             print("get file : "+fname)
             time.sleep(ONE_HOUR) #every hour
 
