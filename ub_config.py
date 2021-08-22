@@ -14,13 +14,12 @@ raw_weather_web_path = raw_file_path + "weather_web_2021/"
 csv_weather_web_path = csv_file_path + "weather_web_2021/"
 csv_ubike_db_path = csv_file_path + "ubike_db_2021/"
 csv_merged_db_web_path = csv_file_path + "merged_db_web_2021/"
-
-
+csv_parsed_db_web_path = csv_file_path + "parsed_ubike_db_web_2021/"
 
 weather_feature_s1 = ['CloudA','GloblRad','PrecpHour','SeaPres','UVI','Visb','WDGust','WSGust','td']
 weather_feature_s2 = ['HUMD','H_24R','PRES','TEMP','WDIR','WDSE']
 weather_feature_all = weather_feature_s1 + weather_feature_s2
-
+weather_feature_used = ['PrecpHour','UVI','Visb','td', 'HUMD','H_24R','PRES','TEMP','comfort','WDSE']
 
 weather_station_dict = {
     
@@ -60,13 +59,10 @@ weather_station_list = [
     {'id':"C0AC70", 'name':'信義', 'coor': [121.5645,25.0378]},
     {'id':"C0AC80", 'name':'文山', 'coor': [121.5757,25.0023]},   
     {'id':"C0A9C0", 'name':'天母', 'coor': [121.5371,25.1174]},   
-    
 ]
 
 
-
-                    
-
-station_list = []
-
+ignore_list = [15, 20, 160, 198, 199, 200] # no station
+ignore_list2 = [28, 47, 58, 69, 99, 101 ,106 ,153 , 168 ,185, 190, 239, 240,264,306,311, 313,346,378,382,383,387]
+station_sno_list = set(range(1,405)) - set(ignore_list) - set(ignore_list2)
 

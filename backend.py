@@ -217,6 +217,7 @@ class backend(object):
     def update_all_station(self):
         #update weather information first
         self.weather_parser.read(self.rawpath + self.w_raw_file)
+        print(self.rawpath + self.w_raw_file)
         wdata = self.weather_parser.get_dict()
         if not self.wstations1: #if empty
             for wd in wdata:
@@ -226,8 +227,13 @@ class backend(object):
             for wd in wdata:
                 ws = self.wstations1[wd['stationId']]
                 ws.set_weather_info(wd)
-        # weater station 2
+                
+        
+        # weather station 2
         self.weather_parser2.read(self.rawpath + self.w2_raw_file)
+        print(self.rawpath + self.w2_raw_file)
+        
+        
         wdata2 = self.weather_parser2.get_dict()
         if not self.wstations2:
             for wd in wdata2:
@@ -238,6 +244,13 @@ class backend(object):
                 ws = self.wstations2[wd['stationId']]
                 ws.set_weather_info(wd)
 
+
+        if self.wstations1:
+            for wd in wdata2:
+                ws = weather_station(wd)
+                self.wstations1[ws.weather_id] = ws
+                
+        #print(wdata2)
         self.wstation1_num = len(self.wstations1)
         self.wstation2_num = len(self.wstations2)
 

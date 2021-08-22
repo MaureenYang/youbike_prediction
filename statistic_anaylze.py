@@ -51,9 +51,9 @@ def optimizeSARIMA(series, parameters_list, s):
         aic = model.aic
         # saving best model, AIC and parameters
         if aic < best_aic:
-            best_model = model
+            #best_model = model
             best_aic = aic
-            best_param = param
+            #best_param = param
         results.append([param, model.aic])
 
     result_table = pd.DataFrame(results)
@@ -71,15 +71,16 @@ def sarima_model_fit(params):
     prediction = best_fit.predict(start=params[3], end=params[4])
     #print("sarima_model_fit:", prediction)
     return prediction
-    
+
+'''
 def predict_SARIMA_dask(series, params = [(6,1,0),(0,1,1,24)], startd='20180601 00:00:00', endd='20180630 23:00:00', freq=1):
 
     futures = []
-    '''
-    for parameters in input_params.values:
-        future = client.submit(costly_simulation, parameters)
-        futures.append(future)
-    '''
+    if False:
+        for parameters in input_params.values:
+            future = client.submit(costly_simulation, parameters)
+            futures.append(future)
+    
     input_params = []
     pred = pd.DataFrame()
     try:
@@ -117,7 +118,7 @@ def predict_SARIMA_dask(series, params = [(6,1,0),(0,1,1,24)], startd='20180601 
         print('Predict_SARIMA Error:', e)
 
     return pred
-
+'''
 def predict_SARIMA_dask2(series, params = [(6,1,0),(0,1,1,24)], startd='20180601 00:00:00', endd='20180630 23:00:00', freq=1):
 
     futures = []
@@ -199,8 +200,8 @@ def predict_SARIMA(series, params = [(6,1,0),(0,1,1,24)], startd='20180601 00:00
 # Moving Average
 def moving_average_result(ts_data, date_list):
     
-    train_start_date = date_list[0]
-    train_end_date = date_list[1]
+    #train_start_date = date_list[0]
+    #train_end_date = date_list[1]
     test_start_date = date_list[2]
     test_end_date = date_list[3]
     rmse_list = []
@@ -407,14 +408,7 @@ if True:#__name__ == '__main__':
                 end_time = time.time()
                 optimizeSARIMA_time = (end_time - start_time)
                 print('spend time:', optimizeSARIMA_time)              
-            '''
-            if False:
-                m = Prophet(daily_seasonality=False)
-                m.fit(train_ts)
-                future = m.make_future_dataframe(periods=365)
-                forecast = m.predict(future)
-                m.plot(forecast);
-            '''
+
             
         except Exception as e:
             print(e)
@@ -426,7 +420,7 @@ if True:#__name__ == '__main__':
     if arima_hyper_train:
         res_t_df = pd.DataFrame(res_time)
         res_t_df.to_csv('result/hyper_train_time.csv')
-#%%
+
    ## client.close()
 
 #%%

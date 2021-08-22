@@ -10,7 +10,7 @@ import json
 import xml.etree.ElementTree
 import datetime
 from base_processor import base_processor
-
+import ub_config as cfg
 
 def getkeyvalue(src):
     new_element = {}
@@ -78,8 +78,9 @@ class WeatherProcessor(base_processor):
             try:
                 for key,value in dict_data['cwbopendata'].items():
                     try:
-                        if(key == 'sent'):
-                            time = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S+08:00")
+                        #if(key == 'sent'):
+                        #    time = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S+08:00")
+                        #    print(time)
                         if(key =='location'):
                             taipei_list = self.find_taipei(value)
                             dict_tmp = self.station_parsing(taipei_list)
@@ -91,13 +92,16 @@ class WeatherProcessor(base_processor):
 
                 self.__data_dict__ = dict_tmp
 
-            except os.error as e:
+            except os.error:
                 self.__data_dict__ = None
 
     def get_dict(self):
         return self.__data_dict__
 
-    def get_station_coor(self, stationId):
+    def get_station_coor_old(self, stationId):
+        return cfg.weather_station_dict[stationId]['coor']
+
+    def get_station_coor_old(self, stationId):
         
         if stationId == "466910":#ok
             return [121.5297, 25.1825]

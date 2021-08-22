@@ -6,7 +6,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import ub_config as cfg
 
-wdata_from_web = False
+wdata_from_web = True
 realtime_data = False
 
 
@@ -154,14 +154,13 @@ def get_weather_from_web(date_start="20200501", date_end="20210612"):
     
     date_range = pd.date_range(date_start,date_end,freq='D')
     
-    for key, val in cfg.weather_station_dict:
+    for key, val in cfg.weather_station_dict.items():
         print('station:',key,', ',val)
         try:
             for d in date_range:
-                
                 date_str = str(d.year)+"-"+str(d.month).zfill(2)+"-"+str(d.day).zfill(2)
                 print(date_str,' ', val,' ',key)
-                str_name = str(val.encode('utf-8'))
+                str_name = str(val['name'].encode('utf-8'))
                 str_name = str_name[2:-1:]
                 str_name = str_name.replace("\\x", "%25",10)
     
@@ -236,10 +235,8 @@ def get_weather_from_web(date_start="20200501", date_end="20210612"):
 if __name__ == "__main__":
 
     if wdata_from_web:
-        get_weather_from_web()#(date_start="20200911", date_end="20200912")
+        get_weather_from_web()#(date_start="20201001", date_end="20201031")
 
-    
-    
     if realtime_data:
         print ("Crawler Starting...")  
         #create thread

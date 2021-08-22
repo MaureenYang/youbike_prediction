@@ -47,7 +47,7 @@ def ubike_from_db_2csv():
     con = sqlite3.connect('db/youbike-20210611.db')
     cur = con.cursor()
        
-    for stationid in range(1,405):
+    for stationid in range(335,405):
         print('station ', str(stationid),' start...')
         ubike_df = pd.DataFrame()
         #for row in cur.execute('SELECT * FROM observations ORDER BY station_id'):
@@ -55,7 +55,7 @@ def ubike_from_db_2csv():
             epoch_time = row[1]
             time_formatted = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epoch_time))
             print("Formatted Date:", time_formatted)
-            r_dict = {'station_id':row[0],'time':time_formatted,'sbi':row[2]}
+            r_dict = {'station_id':row[0],'time':time_formatted,'sbi':row[2],'tot':row[3]}
             ubike_df = ubike_df.append(r_dict, ignore_index=True)
                 
         ubike_df.to_csv(cfg.csv_ubike_db_path + 'ubike_db_sno_'+str(stationid).zfill(3)+'.csv')
@@ -83,13 +83,13 @@ def ubike_weather_merge():
     
     for stationid in range(1,405):#cfg.station_sno_list:
         try:
-            ubike_df = pd.read_csv(cfg.csv_ubike_db_path+'ubike_sno_'+str(stationid).zfill(3)+'.csv')
+            ubike_df = pd.read_csv(cfg.csv_ubike_db_path+'ubike_db_sno_'+str(stationid).zfill(3)+'.csv')
             
             # resample
             print('start to resampe')
             ubike_df['time'] = pd.to_datetime(ubike_df['time'], format='%Y-%m-%d %H:%M:%S', errors='ignore')
             ubike_df = ubike_df.set_index(pd.DatetimeIndex(ubike_df['time'])).drop(columns=['time','Unnamed: 0'])
-            ubike_df= ubike_df['20200714':'20210611']
+            #ubike_df= ubike_df['20200714':'20210611']
             grouped_ubike_df = ubike_df.resample('60min').mean().interpolate().round(0).astype(int)
             #print(grouped_ubike_df.head())
             
@@ -135,8 +135,20 @@ if __name__ == "__main__":
         3. merge the youbike data and weather data to csv file: done
             
     '''
-    #weather_station_web_2csv()
-    #ubike_weather_merge()
     #ubike_from_db_2csv()
+    #weather_station_web_2csv()
+    ubike_weather_merge()
     
+    #be = backend()
+    #station_info_list = []
+    #be.update_all_station()
+    #station_list = be.get_all_station_list() #get staion combination
+
+
+    #for key, val in station_list.items():
+    #    status = val.get_information()
+    #    station_info_list = station_info_list + [status]
+        
+    #sta_df = pd.DataFrame(station_info_list)
+    #sta_df.to_csv("youbike_station_info.csv")
     pass
