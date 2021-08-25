@@ -191,6 +191,7 @@ def data_preprocess(df,ts_shift=False):
             df = df.drop(columns=[tag])
            
         #normalization
+        
         for tag in normalize_tag:
             df[tag] = (df[tag] - df[tag].min()) / (df[tag].max()-df[tag].min())
             
@@ -200,12 +201,16 @@ def data_preprocess(df,ts_shift=False):
         cal = Taiwan()
         holidayidx = []
         for t in cal.holidays(2020):
-            date_str = t[0].strftime("%Y-%m-%d")
-            holidayidx = holidayidx + [date_str]
+            for h in range(0,24):
+                dd = dt.datetime.combine(t[0], dt.datetime.min.time())
+                date_str = (dd + dt.timedelta(hours=h)).strftime("%Y-%m-%d %H:%M:%S")
+                holidayidx = holidayidx + [date_str]
             
         for t in cal.holidays(2021):
-            date_str = t[0].strftime("%Y-%m-%d")
-            holidayidx = holidayidx + [date_str]
+            for h in range(0,24):
+                dd = dt.datetime.combine(t[0], dt.datetime.min.time())
+                date_str = (dd + dt.timedelta(hours=h)).strftime("%Y-%m-%d %H:%M:%S")
+                holidayidx = holidayidx + [date_str]
 
         df['holiday'] = df.index.isin(holidayidx)
         #print("----------------7-------------------")
@@ -283,10 +288,9 @@ def ubike_read_from_file(sno):
     return df
 
 if __name__ == '__main__':
-    for i in range(1,2):
+    for i in range(1,405):
         try:
             df = ubike_read(i)
-    #print(df.UVI.describe())
             df.to_csv(cfg.csv_parsed_db_web_path + "parsed_sno_"+str(i).zfill(3)+".csv")
         except Exception as e:
             print(e)

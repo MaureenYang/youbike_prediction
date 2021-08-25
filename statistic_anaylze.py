@@ -15,16 +15,14 @@ from itertools import product
 import datetime as dt
 import time
 from ts_plot import plot_prediction, tsplot
-import threading
-import multiprocessing as mp
-import dask
-from dask.distributed import Client, progress
+#import threading
+#import multiprocessing as mp
+#import dask
+#from dask.distributed import Client, progress
 from concurrent.futures import ProcessPoolExecutor
+import ub_config as cfg
 
 
-#client = Client(processes= False, threads_per_worker=1, n_workers=int(0.9 * mp.cpu_count()))
-#print('workers:',int(0.9 * mp.cpu_count()))
-#print(client)
 
 def optimizeSARIMA(series, parameters_list, s):
     """
@@ -253,22 +251,9 @@ def ts_analyze(ts_data, sno):
     if math.frexp(res[1])[1] > (-30):
         ts_data = None
     print('{} p-value: {}'.format(sta,math.frexp(res[1])))
- 
-    
+     
     return ts_data
     
-    #ts_diff = ts_data - ts_data.shift(1)
-    #tsplot(ts_diff[1+1:], lags=60)
-    
-    #ts_diff2 = ts_diff - ts_diff.shift(24)
-    #tsplot(ts_diff2[24+2:], lags=60)
-    
-    #from statsmodels.tsa.seasonal import seasonal_decompose
-    #decomposition = seasonal_decompose(ts_data ,period=24)
-    #plt.figure(figsize=[100, 7])
-    #decomposition.plot()
-
-
 #%%
 def SARIMA_HyperParam_Training(train_ts):
     
@@ -289,12 +274,11 @@ def SARIMA_HyperParam_Training(train_ts):
 #%%
 def predict_result(ts_data, arima_params,date_list,station_no,freq_hr=1):
     
-    #arima_params =[(4,0,0),(1,1,2,24)]
-    #train_start_date = date_list[0]
-    #train_end_date = date_list[1]
+
     test_start_date = date_list[2]
     test_end_date = date_list[3]
-    res_path = "D:/youbike/code/ubike_refactor/v2021/statistic_csv/sarima_preidct_result/"
+    
+    res_path = cfg.result_path+"statistic_csv/sarima_preidct_result/" #"D:/youbike/code/ubike_refactor/v2021/statistic_csv/sarima_preidct_result/"
     ts_data = ts_data.asfreq('H')
     pred = predict_SARIMA_dask2(ts_data, startd =test_start_date,endd=test_end_date, freq=freq_hr)
     
@@ -326,7 +310,7 @@ date_list = (train_start_date,train_end_date,test_start_date,test_end_date)
 ignore_list = [15, 20, 160, 198, 199, 200] # no station
 ignore_list2 = [28, 47, 58, 69, 99, 101 ,106 ,153 , 168 ,185, 190, 239, 240,264,306,311, 313, 378,382,383,387]
 
-station_list = set(range(130,405)) - set(ignore_list) -set(ignore_list2)
+station_list = set(range(195,405)) - set(ignore_list) -set(ignore_list2)
 if True:#__name__ == '__main__':
     
     #date_list = (train_start_date,train_end_date,test_start_date,test_end_date)

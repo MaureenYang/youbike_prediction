@@ -127,9 +127,9 @@ def data_preprocess_web(df,ts_shift=False):
         
         #add features
         df['weekday'] = df.index.weekday.astype(str)
-        df.weekday = df.weekday.apply(lambda x: 'wkdy_' + x )
+        df.weekday = df.weekday.apply(lambda x: 'wkdy_' + x)
         df['hours'] = df.index.hour.astype(str)
-        df.hours = df.hours.apply(lambda x: 'hrs_' + x )
+        df.hours = df.hours.apply(lambda x: 'hrs_' +x)
         
         #one-hot encoding
         for tag in one_hot_tag:
@@ -148,12 +148,17 @@ def data_preprocess_web(df,ts_shift=False):
         cal = Taiwan()
         holidayidx = []
         for t in cal.holidays(2020):
-            date_str = t[0].strftime("%Y-%m-%d")
-            holidayidx = holidayidx + [date_str]
+            for h in range(0,24):
+                dd = dt.datetime.combine(t[0], dt.datetime.min.time())
+                date_str = (dd + dt.timedelta(hours=h)).strftime("%Y-%m-%d %H:%M:%S")
+                holidayidx = holidayidx + [date_str]
             
         for t in cal.holidays(2021):
-            date_str = t[0].strftime("%Y-%m-%d")
-            holidayidx = holidayidx + [date_str]
+            for h in range(0,24):
+                dd = dt.datetime.combine(t[0], dt.datetime.min.time())
+                date_str = (dd + dt.timedelta(hours=h)).strftime("%Y-%m-%d %H:%M:%S")
+                holidayidx = holidayidx + [date_str]
+            
 
         df['holiday'] = df.index.isin(holidayidx)
 

@@ -40,7 +40,6 @@ def ubike_from_raw_2csv():
     pass
 
 
-
 ''' ubike data from db to csv'''
 def ubike_from_db_2csv():
     
@@ -59,7 +58,6 @@ def ubike_from_db_2csv():
             ubike_df = ubike_df.append(r_dict, ignore_index=True)
                 
         ubike_df.to_csv(cfg.csv_ubike_db_path + 'ubike_db_sno_'+str(stationid).zfill(3)+'.csv')
-        
         
        
 def ubike_weather_merge():
@@ -137,7 +135,7 @@ if __name__ == "__main__":
     '''
     #ubike_from_db_2csv()
     #weather_station_web_2csv()
-    ubike_weather_merge()
+    #ubike_weather_merge()
     
     #be = backend()
     #station_info_list = []

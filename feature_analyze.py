@@ -145,23 +145,23 @@ def get_all_feature_station_df():
 def compare_each_feature_for_stations(df, tag ,plotbysno=True,plotbypercent=True,savecsv=True):
     
 
-        res_df = pd.DataFrame()
-        res_df['avg']= df[tag].apply(lambda x: x[0])
-        res_df['avg_no']= df[tag].apply(lambda x: x[2])
-        res_df['percentage']= df[tag].apply(lambda x: (x[0]-x[2])/x[0])
+    res_df = pd.DataFrame()
+    res_df['avg']= df[tag].apply(lambda x: x[0])
+    res_df['avg_no']= df[tag].apply(lambda x: x[2])
+    res_df['percentage']= df[tag].apply(lambda x: (x[0]-x[2])/x[0])
 
         
-        if plotbysno:
-            fig = res_df.drop(['percentage'],axis=1).plot.bar(figsize=(len(res_df.index),7),rot=0).get_figure()
-            fig.savefig('feature_plot_by_sno_'+tag+'.png')
+    if plotbysno:
+        fig = res_df.drop(['percentage'],axis=1).plot.bar(figsize=(len(res_df.index),7),rot=0).get_figure()
+        fig.savefig('feature_plot_by_sno_'+tag+'.png')
             
-        if savecsv:
-            res_df.to_csv("feature_analyze_"+tag+".csv")
+    if savecsv:
+        res_df.to_csv("feature_analyze_"+tag+".csv")
             
-        if plotbypercent:
-            res_df_p = res_df.drop(['avg','avg_no'],axis=1).sort_values(by='percentage')
-            fig2 = res_df_p.plot.bar(figsize=(round(len(res_df.index)/2),7),rot=0).get_figure()
-            fig2.savefig('feature_plot_by_percentage_'+tag+'.png')
+    if plotbypercent:
+        res_df_p = res_df.drop(['avg','avg_no'],axis=1).sort_values(by='percentage')
+        fig2 = res_df_p.plot.bar(figsize=(round(len(res_df.index)/2),7),rot=0).get_figure()
+        fig2.savefig('feature_plot_by_percentage_'+tag+'.png')
                 
 
 def compare_allfeature_for_allstations(df,savecsv=False):
@@ -190,6 +190,61 @@ def compare_allfeature_for_allstations(df,savecsv=False):
         print(exc_type, fname, exc_tb.tb_lineno)
 
 
+
+'''
+   non-weather features
+   - find 
+   1. holiday: true/false
+   2. wkdy_0: monday
+   
+'''
+
+# distrubution
+
+def temp_function(df,tag):
+    
+    #get the unique value of the tag
+    for val in df[tag].unique():
+        a = df[(df[tag] == val)]
+        keys = []
+        values = []
+        for i in range(0,24):
+            b = round(a[a.index.hour == i].percet.mean())
+
+            keys = keys + [i]
+            values = values + [b]
+            
+        fig = plt.bar(keys, values)
+        plt.bar(keys, values,color=['blue'])
+        plt.xlabel('hour')
+        plt.ylabel('percentage(%)')
+        plt.title('Distrubution of ' + tag +'('+str(val)+') in station('+str(df.station_id[0])+')')
+        #plt.show()
+        plt.savefig(cfg.result_path + 'plot/'+tag+'/distrubution_' + tag +'_'+str(val)+'_station'+str(df.station_id[0])+'.png')
+
+wkdy=['wkdy_0','wkdy_1','wkdy_2','wkdy_3','wkdy_4','wkdy_5','wkdy_6']
+
+def temp2_function(df,tag_list):
+    
+    #get the unique value of the tag
+    for tag in tag_list:
+        a = df[(df[tag] == 1)]
+        keys = []
+        values = []
+        for i in range(0,24):
+            b = round(a[a.index.hour == i].percet.mean())
+
+            keys = keys + [i]
+            values = values + [b]
+        fig = plt.bar(keys, values)
+        plt.bar(keys, values,color=['blue'])
+        plt.xlabel('hour')
+        plt.ylabel('percentage(%)')
+        plt.title('Distrubution of ' + tag + ' in station('+str(df.station_id[0])+')')
+        #plt.show()
+        plt.savefig(cfg.result_path + 'plot/'+tag+'/distrubution_' + tag +'_'+'_station'+str(df.station_id[0])+'.png')
+        
+
 if __name__ == '__main__':
     
     # create describe csv for the features
@@ -199,6 +254,28 @@ if __name__ == '__main__':
     #dd = get_all_feature_station_df()
     #compare_each_feature_for_stations(dd,'H_24R',plotbysno=True,plotbypercent=True,savecsv=True)   
     #compare_allfeature_for_allstations(dd,savecsv=False)
+    import os,sys
+    for tag in wkdy:
+        try:
+            # Create target Directory
+            os.mkdir(cfg.result_path + 'plot/'+tag+'/')
+            print("Directory " , tag ,  " Created ") 
+        except FileExistsError:
+            print("Directory " , tag ,  " already exists")
+
+    for tag in ['holiday']:
+        try:
+            # Create target Directory
+            os.mkdir(cfg.result_path + 'plot/'+tag+'/')
+            print("Directory " , tag ,  " Created ") 
+        except FileExistsError:
+            print("Directory " , tag ,  " already exists")
+            
+    for sno in station_list:
+        df = ubike_read_from_file(sno)
+        temp_function(df,"holiday")
+        temp2_function(df,wkdy)
+        
     pass
 
 
