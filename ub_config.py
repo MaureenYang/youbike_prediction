@@ -17,6 +17,8 @@ csv_merged_db_web_path = csv_file_path + "merged_db_web_2021/"
 csv_parsed_db_web_path = csv_file_path + "parsed_ubike_db_web_2021/"
 
 result_path = "D:/git/youbike_prediction/result/"
+result_plot_path = result_path+"plot/"
+result_plot_pred_path = result_plot_path + "predict_result/"
 
 
 weather_feature_s1 = ['CloudA','GloblRad','PrecpHour','SeaPres','UVI','Visb','WDGust','WSGust','td']

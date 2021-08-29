@@ -303,14 +303,14 @@ filesinpath = os.listdir(filepath)
 
 train_start_date = '20200714 00:00:00'
 train_end_date = '20210131 23:00:00'
-test_start_date = '20210201 00:00:00'
+test_start_date = '20210201 00:00:00' 
 test_end_date = '20210611 18:00:00'
 #test_end_date = '20210201 23:00:00'
 date_list = (train_start_date,train_end_date,test_start_date,test_end_date)
 ignore_list = [15, 20, 160, 198, 199, 200] # no station
 ignore_list2 = [28, 47, 58, 69, 99, 101 ,106 ,153 , 168 ,185, 190, 239, 240,264,306,311, 313, 378,382,383,387]
 
-station_list = set(range(195,405)) - set(ignore_list) -set(ignore_list2)
+station_list = set(range(261,405)) - set(ignore_list) -set(ignore_list2)
 if True:#__name__ == '__main__':
     
     #date_list = (train_start_date,train_end_date,test_start_date,test_end_date)

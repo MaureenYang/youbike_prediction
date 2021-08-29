@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-station_list = cfg.station_sno_list
+station_list = list(set(cfg.station_sno_list) - set(range(1,342)))
 feature_tag = ['PrecpHour','H_24R','td','HUMD','comfort','UVI','PRES','WDSE','TEMP'] 
 
 
@@ -233,9 +233,9 @@ def temp2_function(df,tag_list):
         values = []
         for i in range(0,24):
             b = round(a[a.index.hour == i].percet.mean())
-
             keys = keys + [i]
             values = values + [b]
+            
         fig = plt.bar(keys, values)
         plt.bar(keys, values,color=['blue'])
         plt.xlabel('hour')
