@@ -39,8 +39,8 @@ small_set_flag = False
 estimator_list = [lasso, ridge, rf, ada, xgb]
 title_list = ['Lasso ','Ridge ','Random Forest ','Adaboost ','XGBoost']
 
-#estimator_list = [lasso, ridge, rf]
-#title_list = ['Lasso ','Ridge ','Random Forest ']
+estimator_list = [lasso, ridge, rf]
+title_list = ['Lasso ','Ridge ','Random Forest ']
 
 #estimator_list = [gb]
 #title_list = ['Gradient Boost ']
@@ -51,12 +51,17 @@ title_list = ['Lasso ','Ridge ','Random Forest ','Adaboost ','XGBoost']
 #estimator_list = [lasso, ridge]
 #title_list = ['Lasso ','Ridge ']
 
-station_list = [1,2]#cfg.station_sno_list#[1,2,3,4,5,6,7,8,9,10] #[1,41,81,121,161,201,241,281,321,361] #range(1, 100, 40)
+#station_list = range(11,31) #cfg.station_sno_list#[1,2,3,4,5,6,7,8,9,10] #[1,41,81,121,161,201,241,281,321,361] #range(1, 100, 40)
+ignore_list = [15, 20, 160, 198, 199, 200] # no station
+ignore_list2 = [28, 47, 58, 69, 99, 101 ,106 ,153 , 168 ,185, 190, 239, 240,264,306,311, 313, 378,382,383,387]
 
+#station_list = set(range(51,405)) - set(ignore_list) -set(ignore_list2)
+station_list = set(range(1,405)) - set(ignore_list) -set(ignore_list2)
+station_list = [1,2,3]
 
 ''' const'''
 filepath = cfg.csv_parsed_db_web_path
-
+#%%
 
 ''' functions '''
 def predict_SARIMA(series, params = [(6,1,0),(0,1,1,24)], startd='20180601 00:00:00', endd='20180630 23:00:00', freq=1):
@@ -132,6 +137,7 @@ rmse_list = []
 result_dict = {}
 #read data from file
 for sno in station_list:
+    
     f = 'parsed_sno_'+str(sno).zfill(3)+'.csv'
     print("file name:", f)
     df = pd.read_csv(filepath + f)
@@ -165,7 +171,7 @@ for sno in station_list:
     #  - find correlation, only use abs > threshold
     print('current columns:',train_x.columns)
     print('number of columns:',len(train_x.columns))
-        
+
     if False:
         corr_thrd = 0.3
         train_corr = train_x.join(train_y['y_sbi'])
@@ -237,6 +243,7 @@ for sno in station_list:
             print("Spent Time:",end_time-start_time,'sec.')
                 
             result_list = result_list + [res]
+    '''
     else:
         arima_params=[(2,0,1),(1,1,2,24)]
         ts_data = Y.asfreq('H')
@@ -244,35 +251,103 @@ for sno in station_list:
         sarima_title = "SARIMA ({},{},{}) ({},{},{},{}), freq={}h Prediction".format(arima_params[0][0],arima_params[0][1],arima_params[0][2],                                                                                             arima_params[1][0],arima_params[1][1],arima_params[1][2],arima_params[1][3],1)
         rmse = plot_prediction(sarima_title, test_y, train_start_date, train_end_date, pred)
         rmse_list = rmse_list + [rmse]
-                
-    
-    result_dict[sno] = result_list
+     '''         
 
-    if False:
+#%%
+#for sno in range(1,360):
+    try:   
+        # sarima
         f = 'sarima_prediction_'+str(sno).zfill(3)+'.csv'
         arima_preidct_result_path = "D:/git/youbike_prediction/result/statistic_csv/sarima_preidct_result/"
         arima_result = pd.read_csv(arima_preidct_result_path + f)
+        
         arima_result['time'] = pd.to_datetime(arima_result['Unnamed: 0'], format='%Y-%m-%d %H%M%S', errors='ignore')
         arima_result = arima_result.set_index(pd.DatetimeIndex(arima_result['time'])).drop(columns=['time','Unnamed: 0'])
         arima_result = arima_result[:-1]
         arima_result = arima_result.rename(columns={0: 'y_sbi'})
         stitle = 'SRAIMA Prediction ,station(' + str(sno) +'), '+ 'sbi'
-        rmse = plot_prediction(stitle, test_y, train_start_date,train_end_date,arima_result,plot_pic=True, save_fig=True)
+        rmse = plot_prediction(stitle, test_y, train_start_date,train_end_date,arima_result,plot_pic=False, save_fig=False)
+        print(rmse)
+        result_dict[sno] = rmse
         
-        res['name'] = stitle
-        res['results'] = None
-        res['best_param'] = None
-        res['RMSE'] = rmse
-        res['time'] = None             
-        print('RMSE:', rmse)    
-        result_list = result_list + [res]
+    except Exception as e:
+        print(e)
+        result_dict[sno] = None
         
+
 #%%
+print(result_dict)
+
+#%%
+if False:
+    hama_file = "D:/git/youbike_prediction/result/statistic_csv/ha_ma_result_0701_finale.csv"
+    hama_result = pd.read_csv(hama_file)
+    #print(hama_result)
+    hama_df = hama_result[['ha_rmse', 'ma_rmse_12', 'ma_rmse_3', 'ma_rmse_6','sno']]
+    hama_df = hama_df.set_index(hama_df.sno).drop(columns=['sno'])
+    hama_df['sarima'] = pd.Series(result_dict)
+    print(hama_df)
+    
+    model_file = "D:/git/youbike_prediction/result/training_result/all_feature_trainning_result_001_228.csv"
+    model_result = pd.read_csv(model_file)
+    print(model_result)
+    
+    model_list = model_result['model'].unique()
+    for m in model_list:
+        a = model_result[model_result['model'] == m]
+        aa = a[['sno','RMSE']]
+        aa = aa.set_index(a['sno']).drop(columns=['sno'])
+        print(aa)
+        #break
+        hama_df[m] = aa
+    
+    tot_dic = {}
+    for sno in station_list:
+        f = 'parsed_sno_'+str(sno).zfill(3)+'.csv'
+        print("file name:", f)
+        df = pd.read_csv(filepath + f)
+        #print(df['tot'][0])
+        tot_dic[sno] =df['tot'][0]
+    
+    hama_df['tot'] = pd.Series(tot_dic)
+    print(hama_df)
+    
+    round_df = (hama_df.apply(round))
+    for col in round_df.columns:
+        if col == 'tot':
+            continue
+        round_df[col] = round_df[col]/round_df['tot']*100
+
+
+
+
+    #a = round_df['sarima'].dropna()
+    #int_idx = round_df.index.intersection(a.index)
+    #round_df2 = round_df.loc(int_idx)
+    
+    round_df2 = round_df.dropna()
+    round_df2 = round_df2[round_df2['sarima'] < 100]
+    print(round_df2)
+    
+    print(round_df2['sarima'].describe())
+    
+    res_of_mean = {}
+    for col in round_df.columns:
+        if col == 'tot':
+            continue
+        res_of_mean[col] = round_df2[col].mean()
+       
+    rrrr = pd.Series(res_of_mean)
+    rrrr.plot(kind="bar",figsize=(20,7))
+    
+    print(res_of_mean)
+
+#%%
+'''
 res_df = pd.DataFrame()
 for k, v in result_dict.items():
     res_df = res_df.append(v)
  
-    
-#res_df.to_csv("all_feature_trainning_result.csv")
-
+print(res_df)
+'''
     

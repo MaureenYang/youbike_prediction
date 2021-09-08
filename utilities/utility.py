@@ -11,10 +11,10 @@ import numpy as np
 import math
 import ub_config as cfg
 
-filepath = cfg.csv_merged_db_web_path
 oldfileppath = "E:/csvfile/source/"
+filepath = cfg.csv_merged_db_web_path
 filesinpath = os.listdir(filepath)
-
+station_cat_list = pd.read_csv(cfg.ipython_path+"location_category.csv")
 
 
 def update_uvi_category(df):
@@ -80,8 +80,18 @@ def addComfortIndex(df):
     df['comfort'] = df[['TEMP','td']].apply(lambda x: calComfortIndex(x),axis=1) 
     return df
 
+drop_tag = ['SeaPres','GloblRad','CloudA','WSGust','WDGust','Visb']
+float_tag = ['HUMD','PRES', 'TEMP', 'WDIR', 'H_24R', 'WDSE', 'PrecpHour', 'UVI','td']
+fill_past_mean_tag = []
+interpolate_tag = ['TEMP','WDIR','H_24R','station_id','PRES','HUMD','WDSE','td','tot']
+fillzero_tag = ['UVI'] #not just fill zero
+one_hot_tag = ['WDIR','weekday','hours']
+normalize_tag = []#['HUMD','PRES', 'TEMP', 'H_24R', 'WDSE']
+
 def data_preprocess(df,ts_shift=False):
 
+    print(df.columns)
+    
     try:
         emptyidx=[]
         try:
@@ -95,29 +105,20 @@ def data_preprocess(df,ts_shift=False):
             pass
         
         # drop features
-        df = df.drop(columns = ['SeaPres','GloblRad','CloudA','WSGust','WDGust'])
+        df = df.drop(columns = drop_tag)
         
         # type transformation
         df['time'] = pd.to_datetime(df['time'], format='%Y/%m/%d %H%M%S', errors='ignore')
-        df = df.set_index(pd.DatetimeIndex(df['time'])).drop(columns=['time'])
-
+        df = df.set_index(pd.DatetimeIndex(df['time']))#.drop(columns=['time'])
         df = df[~df.index.duplicated(keep='first')]
         df = df.resample('H').asfreq()
     
-
-        float_idx = ['station_id','HUMD','PRES', 'TEMP', 'WDIR', 'H_24R', 'WDSE', 'PrecpHour', 'UVI', 'Visb']
-        df[float_idx] = df[float_idx].astype('float')
-
         #print("-----------------1------------------")
+        
         # fill missing value
+        df[float_tag] = df[float_tag].astype('float')
         df['sbi'] = df['sbi'].apply(lambda x: round(x, 0))
-        
-        
-        fill_past_mean_tag = []
-        interpolate_tag = ['TEMP','WDIR','H_24R','station_id','PRES','HUMD','WDSE','td']
-        fillzero_tag = ['UVI']#,'Visb'] #not just fill zero
-        one_hot_tag = ['WDIR','weekday','hours']
-        normalize_tag = []#['HUMD','PRES', 'TEMP', 'H_24R', 'WDSE', 'Visb']
+
         #print("----------------2-------------------")
         for tag in fill_past_mean_tag:
             dfl = []
@@ -176,12 +177,14 @@ def data_preprocess(df,ts_shift=False):
         df = update_uvi_category(df)
         df = degToCompass(df)
         df = addComfortIndex(df)
+        
         #print("-----------------4------------------")
         #add features
         df['weekday'] = df.index.weekday.astype(str)
         df.weekday = df.weekday.apply(lambda x: 'wkdy_' + x )
         df['hours'] = df.index.hour.astype(str)
         df.hours = df.hours.apply(lambda x: 'hrs_' + x )
+        
         #print("-----------------5------------------")
         #one-hot encoding
         for tag in one_hot_tag:
@@ -191,7 +194,6 @@ def data_preprocess(df,ts_shift=False):
             df = df.drop(columns=[tag])
            
         #normalization
-        
         for tag in normalize_tag:
             df[tag] = (df[tag] - df[tag].min()) / (df[tag].max()-df[tag].min())
             
@@ -213,6 +215,9 @@ def data_preprocess(df,ts_shift=False):
                 holidayidx = holidayidx + [date_str]
 
         df['holiday'] = df.index.isin(holidayidx)
+        
+        df = pd.merge(df, station_cat_list, left_on='station_id', right_on='sno')
+        
         #print("----------------7-------------------")
         for tag in ['sbi']:
 
@@ -227,6 +232,7 @@ def data_preprocess(df,ts_shift=False):
 
         #print("----------------8-------------------")
         if ts_shift:
+            
             ndf = df
             ndf['predict_hour'] = 1
             for tag in ['sbi']:
@@ -245,6 +251,7 @@ def data_preprocess(df,ts_shift=False):
             ndf.index = ndf["time"]
             
             df = ndf
+            
         #print("--------------9---------------------")
     except Exception as e:
         print('ERROR:',e)

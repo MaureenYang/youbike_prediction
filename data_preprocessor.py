@@ -5,6 +5,8 @@ import datetime as dt
 import ub_config as cfg
 
 
+station_cat_list = pd.read_csv(cfg.ipython_path+"location_category.csv")
+
 def uvi_deg2Category(df):
     #UVI_val_catgory = {'>30': 8, '21-30':7, '16-20':6, '11-15':5,'7-10':4, '3-6':3, '1-2':2,'<1':1,'0':0}
     UVI_catgory = {'uvi_30': 8, 'uvi_20_30': 7, 'uvi_16_20': 6, 'uvi_11_16': 5, 'uvi_7_11': 4, 'uvi_3_7': 3, 'uvi_1_3': 2, 'uvi_1': 1, 'uvi_0': 0}
@@ -161,6 +163,8 @@ def data_preprocess_web(df,ts_shift=False):
             
 
         df['holiday'] = df.index.isin(holidayidx)
+
+        ##df = pd.merge(df, station_cat_list, left_on='station_id', right_on='sno')
 
         for tag in ['sbi']:
 

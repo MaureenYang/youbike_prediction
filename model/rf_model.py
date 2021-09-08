@@ -36,7 +36,7 @@ def index_splitter(N, fold):
 
 
 # Number of trees in random forest
-def rf(X, Y, kfold=3, feature_set=None,rfecv_en=False):
+def rf(X, Y, kfold=3, model=None ,feature_set=None,rfecv_en=False):
     
     arr = index_splitter(N = len(X), fold = kfold)
     ps = PredefinedSplit(arr)
@@ -47,6 +47,7 @@ def rf(X, Y, kfold=3, feature_set=None,rfecv_en=False):
 
     train_X, train_y = X.values[train_index,:], Y.values[train_index]
     test_X, test_y = X.values[test_index,:], Y.values[test_index]
+
     arr = index_splitter(N = len(train_X), fold = kfold)
     ps2 = PredefinedSplit(arr)
 
