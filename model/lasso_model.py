@@ -122,18 +122,20 @@ def lasso(X, Y, kfold=3, feature_set=None,rfecv_en=False):
     if False:
         #feature importance
         label_name = X.keys()
-        print(lasso_grid2.best_estimator_.coef_)
-        print(label_name)   
-        coef_lab = pd.DataFrame(lasso_grid2.best_estimator_.coef_,index=label_name) 
+        #print(lasso_grid2.best_estimator_.coef_)
+        #print(label_name)   
+        coef_lab = pd.DataFrame(lasso_grid2.best_estimator_.coef_,index=label_name)
+        coef_lab = coef_lab.sort_values(by=0)
+        label_name = coef_lab.index
         num_feature = len(lasso_grid2.best_estimator_.coef_)
-        plt.figure(figsize=(24,6))
-        plt.bar(range(1,num_feature*4,4), lasso_grid2.best_estimator_.coef_)
+        plt.figure(figsize=(60,7))
+        plt.bar(range(1,num_feature*4,4), coef_lab[0])
         plt.xticks(range(1,num_feature*4,4), label_name)
         plt.title("Lasso Feature Importances"+",kfold="+str(kfold))
         plt.show()
     
      
     if rfecv_en:
-        return lasso_grid2, results, lasso_grid2.best_params_, selector.support_
+        return lasso_grid2.best_estimator_, results, lasso_grid2.best_params_, selector.support_
     else:
-        return lasso_grid2, results, lasso_grid2.best_params_, None
+        return lasso_grid2.best_estimator_, results, lasso_grid2.best_params_, None

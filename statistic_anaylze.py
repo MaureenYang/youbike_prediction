@@ -173,14 +173,14 @@ def predict_SARIMA(series, params = [(6,1,0),(0,1,1,24)], startd='20180601 00:00
         for pred_date in pd.date_range(start=startd, end=endd,freq = f_str):
             print('predict_SARIMA:', pred_date, 'freq:',f_str)
             end_date = pred_date - dt.timedelta(hours=1)
-            start_date = pred_date - dt.timedelta(days=7)
+            start_date = pred_date - dt.timedelta(days=2)
             pred_end_date = pred_date + dt.timedelta(hours=(freq-1))
 
             start_date_str = start_date.strftime("%Y%m%d %H:%M:%S")
             end_date_str = end_date.strftime("%Y%m%d %H:%M:%S")
             pred_date_str = pred_date.strftime("%Y%m%d %H:%M:%S")
             pred_end_date_str = pred_end_date.strftime("%Y%m%d %H:%M:%S")
-            #print(start_date_str, ',',end_date_str,',',pred_date_str,',',pred_end_date_str)
+            print(start_date_str, ',',end_date_str,',',pred_date_str,',',pred_end_date_str)
 
             train_ts = series[start_date_str:end_date_str]
             series = series.asfreq('H')
@@ -280,14 +280,16 @@ def predict_result(ts_data, arima_params,date_list,station_no,freq_hr=1):
     
     res_path = cfg.result_path+"statistic_csv/sarima_preidct_result/" #"D:/youbike/code/ubike_refactor/v2021/statistic_csv/sarima_preidct_result/"
     ts_data = ts_data.asfreq('H')
-    pred = predict_SARIMA_dask2(ts_data, startd =test_start_date,endd=test_end_date, freq=freq_hr)
+    #pred = predict_SARIMA_dask2(ts_data, startd =test_start_date,endd=test_end_date, freq=freq_hr)
+    pred = predict_SARIMA(ts_data, startd =test_start_date,endd=test_end_date, freq=freq_hr)
     
+    print(pred)
     plot_name_str = res_path + "plot/sarima_prediction_" + str(station_no).zfill(3) +".png"
 
     sarima_title = "SARIMA ({},{},{}) ({},{},{},{}), freq={}h Prediction".format(arima_params[0][0],arima_params[0][1],arima_params[0][2],
                                                                                      arima_params[1][0],arima_params[1][1],arima_params[1][2],arima_params[1][3],1)
-    rmse = plot_prediction(sarima_title, ts_data, pred, plot_name=plot_name_str)
-    pred.to_csv(res_path + "sarima_prediction_" + str(station_no).zfill(3) +".csv")
+    #rmse = plot_prediction(sarima_title, ts_data, pred, plot_name=plot_name_str)
+    #pred.to_csv(res_path + "sarima_prediction_" + str(station_no).zfill(3) +".csv")
     return rmse
 
 #%%
@@ -303,14 +305,14 @@ filesinpath = os.listdir(filepath)
 
 train_start_date = '20200714 00:00:00'
 train_end_date = '20210131 23:00:00'
-test_start_date = '20210201 00:00:00' 
-test_end_date = '20210611 18:00:00'
+test_start_date = '20210215 00:00:00'   #'20210201 00:00:00' 
+test_end_date = '20210215 00:00:00'#'20210611 18:00:00'
 #test_end_date = '20210201 23:00:00'
 date_list = (train_start_date,train_end_date,test_start_date,test_end_date)
 ignore_list = [15, 20, 160, 198, 199, 200] # no station
-ignore_list2 = [28, 47, 58, 69, 99, 101 ,106 ,153 , 168 ,185, 190, 239, 240,264,306,311, 313, 378,382,383,387]
+ignore_list2 = [28, 47, 58, 69, 99, 101 ,106 ,153 , 168 ,185, 190, 239, 240, 264, 306,311, 313, 378,382,383,387]
 
-station_list = set(range(261,405)) - set(ignore_list) -set(ignore_list2)
+station_list = [195]#[31,79,95,124,170,174,237,390]#set(range(369,384)) - set(ignore_list) -set(ignore_list2)
 if True:#__name__ == '__main__':
     
     #date_list = (train_start_date,train_end_date,test_start_date,test_end_date)

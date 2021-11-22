@@ -9,6 +9,7 @@ from sklearn.metrics import mean_squared_error
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import logging
 
 
 
@@ -133,6 +134,6 @@ def ridge(X, Y, kfold=3, feature_set=None,rfecv_en=False):
         plt.show()
         
     if rfecv_en:
-        return ridge_grid2, results, ridge_grid2.best_params_, selector.support_
+        return ridge_grid2.best_estimator_, results, ridge_grid2.best_params_, selector.support_
     else:
-        return ridge_grid2, results, ridge_grid2.best_params_, None
+        return ridge_grid2.best_estimator_, results, ridge_grid2.best_params_, None

@@ -77,9 +77,11 @@ def ubike_weather_merge():
        except Exception as e:
            print(e)
            
-    #print(mapping_table)
-    
-    for stationid in range(1,405):#cfg.station_sno_list:
+    print(type(mapping_table))
+    mt_df = pd.DataFrame(mapping_table)
+    print(mt_df.T)
+    mt_df.T.to_csv("mapping_table.csv")
+    for stationid in []:#range(1,405):#cfg.station_sno_list:
         try:
             ubike_df = pd.read_csv(cfg.csv_ubike_db_path+'ubike_db_sno_'+str(stationid).zfill(3)+'.csv')
             
@@ -135,7 +137,7 @@ if __name__ == "__main__":
     '''
     #ubike_from_db_2csv()
     #weather_station_web_2csv()
-    #ubike_weather_merge()
+    ubike_weather_merge()
     
     #be = backend()
     #station_info_list = []

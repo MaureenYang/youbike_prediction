@@ -3,3 +3,6 @@ __pycache__/
 db/
 .ipynb_checkpoints/
 .DS_Store
+result/statistic_csv/sarima_preidct_result/plot/
+result/plot/feature_analyze/
+log/

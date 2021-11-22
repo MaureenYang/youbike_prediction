@@ -14,8 +14,14 @@ import ub_config as cfg
 oldfileppath = "E:/csvfile/source/"
 filepath = cfg.csv_merged_db_web_path
 filesinpath = os.listdir(filepath)
-station_cat_list = pd.read_csv(cfg.ipython_path+"location_category.csv")
-
+station_cat_list = pd.read_csv(cfg.ipython_path+"station_neibor_result.csv")
+station_info = pd.read_csv(cfg.ipython_path + "youbike_station_info.csv")
+station_info['coordinate'] = station_info['coordinate'].apply(eval)
+station_info['lat'] = station_info['coordinate'].apply(lambda x: x[0])
+station_info['lng'] = station_info['coordinate'].apply(lambda x: x[1])
+station_info = station_info[['sno', 'lat', 'lng']]
+station_info['lat'] = (station_info['lat'] - station_info['lat'].min()) / (station_info['lat'].max()-station_info['lat'].min())
+station_info['lng'] = (station_info['lng'] - station_info['lng'].min()) / (station_info['lng'].max()-station_info['lng'].min())
 
 def update_uvi_category(df):
     #UVI_val_catgory = {'>30': 8, '21-30':7, '16-20':6, '11-15':5,'7-10':4, '3-6':3, '1-2':2,'<1':1,'0':0}
@@ -80,18 +86,22 @@ def addComfortIndex(df):
     df['comfort'] = df[['TEMP','td']].apply(lambda x: calComfortIndex(x),axis=1) 
     return df
 
+all_tag = ['time', 'sbi', 'station_id', 'tot', 'CloudA', 'GloblRad', 'PrecpHour',
+       'SeaPres', 'UVI', 'Visb', 'WDGust', 'WSGust', 'td', 'HUMD', 'H_24R',
+       'PRES', 'TEMP', 'WDIR', 'WDSE']
+
 drop_tag = ['SeaPres','GloblRad','CloudA','WSGust','WDGust','Visb']
-float_tag = ['HUMD','PRES', 'TEMP', 'WDIR', 'H_24R', 'WDSE', 'PrecpHour', 'UVI','td']
-fill_past_mean_tag = []
-interpolate_tag = ['TEMP','WDIR','H_24R','station_id','PRES','HUMD','WDSE','td','tot']
+float_tag = ['HUMD','PRES', 'TEMP', 'WDIR', 'WDSE','H_24R', 'PrecpHour', 'UVI','td']
+interpolate_tag = ['TEMP','WDIR','H_24R','PRES','HUMD','WDSE','td']
 fillzero_tag = ['UVI'] #not just fill zero
 one_hot_tag = ['WDIR','weekday','hours']
-normalize_tag = []#['HUMD','PRES', 'TEMP', 'H_24R', 'WDSE']
+normalize_tag = ['HUMD','PRES', 'TEMP', 'WDSE','td']#,'lat','lng']
+fill_past_mean_tag = []
+#drop_location_tag =['cat_hospital_500', 'cat_college_500','cat_train_500', 'cat_hospital_1000','cat_college_1000','cat_train_1000','station_id','tot','sno','lat','lng']
+drop_location_tag =['sno']
 
-def data_preprocess(df,ts_shift=False):
-
-    print(df.columns)
-    
+def data_preprocess(df,ts_shift=False,normalize=False):
+   
     try:
         emptyidx=[]
         try:
@@ -162,10 +172,7 @@ def data_preprocess(df,ts_shift=False):
                 target_df2 = target_df.interpolate(limit_direction="both").copy()
                     
                 for i in target_df2.index:
-                    #print(i)
                     df[tag].loc[i] = target_df2.loc[i]
-                    #print(type(df[tag].loc[i]))
-                    #print(type(target_df2.loc[i]))
                     df_tmp = target_df2.loc[i]
                     df[tag].loc[i] = df_tmp
                 
@@ -188,14 +195,16 @@ def data_preprocess(df,ts_shift=False):
         #print("-----------------5------------------")
         #one-hot encoding
         for tag in one_hot_tag:
-            data_dum = pd.get_dummies(df[tag])
+            data_dum = pd.get_dummies(df[tag], sparse=True)
             end = pd.DataFrame(data_dum)
             df[end.columns] = end
             df = df.drop(columns=[tag])
            
         #normalization
-        for tag in normalize_tag:
-            df[tag] = (df[tag] - df[tag].min()) / (df[tag].max()-df[tag].min())
+        if normalize:
+            print("normalized!")
+            for tag in normalize_tag:
+                df[tag] = (df[tag] - df[tag].min()) / (df[tag].max()-df[tag].min())
             
         #print("-----------------6------------------")
         # add holiday or not
@@ -216,7 +225,11 @@ def data_preprocess(df,ts_shift=False):
 
         df['holiday'] = df.index.isin(holidayidx)
         
+        # add coordinates
+        df = df.join(station_info.set_index('sno'), on='station_id')       
+        
         df = pd.merge(df, station_cat_list, left_on='station_id', right_on='sno')
+        df = df.drop(columns= drop_location_tag)
         
         #print("----------------7-------------------")
         for tag in ['sbi']:
@@ -271,7 +284,7 @@ def ubike_read(sno):
     df = df.set_index(pd.DatetimeIndex(df['time']))
     df = df.sort_index()
     
-    df = data_preprocess(df)
+    df = data_preprocess(df,normalize=True)
     
     #fill data from anaylze
     #old_f = "data_sno_" + str(sno).zfill(3) +".csv"
@@ -291,18 +304,15 @@ def ubike_read_from_file(sno):
     df = pd.read_csv(cfg.csv_parsed_db_web_path + f)
     df['time'] = pd.to_datetime(df['time'], format='%Y-%m-%d %H:%M:%S', errors='ignore')
     df = df.set_index(pd.DatetimeIndex(df['time']))
-    
+
     return df
 
 if __name__ == '__main__':
     for i in range(1,405):
         try:
             df = ubike_read(i)
-            df.to_csv(cfg.csv_parsed_db_web_path + "parsed_sno_"+str(i).zfill(3)+".csv")
+            df.to_csv(cfg.csv_parsed_nor_sparsed_db_web_path + "parsed_sno_"+str(i).zfill(3)+".csv")
         except Exception as e:
             print(e)
             print("station:", str(i))
-    #df['20210101':'20210131'].comfort.plot(type='bar')
-    #ax = df['comfort'].value_counts().plot(kind='bar',
-    #                                figsize=(14,8),
-    #                                title="Number for each Owner Name")
+

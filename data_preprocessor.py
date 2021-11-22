@@ -135,7 +135,7 @@ def data_preprocess_web(df,ts_shift=False):
         
         #one-hot encoding
         for tag in one_hot_tag:
-            data_dum = pd.get_dummies(df[tag])
+            data_dum = pd.get_dummies(df[tag],sparse=True)
             end = pd.DataFrame(data_dum)
             df[end.columns] = end
             df = df.drop(columns=[tag])

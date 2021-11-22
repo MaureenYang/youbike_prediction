@@ -19,7 +19,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import math
-
+import logging
 
 def index_splitter(N, fold):
     index_split = []
@@ -111,7 +111,7 @@ def rf(X, Y, kfold=3, model=None ,feature_set=None,rfecv_en=False):
     
     # Number of trees in random forest
     ets_unit =  BestPara_grid['n_estimators']
-    n_estimators = [int(x) for x in range(ets_unit - 20, ets_unit + 20, 5)]
+    n_estimators = [int(x) for x in range(ets_unit - 10, ets_unit + 10, 5)]
     max_depth = [BestPara_grid["max_depth"]]
 
     # Minimum number of samples required to split a node
