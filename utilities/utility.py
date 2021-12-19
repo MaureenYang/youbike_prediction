@@ -122,14 +122,11 @@ def data_preprocess(df,ts_shift=False,normalize=False):
         df = df.set_index(pd.DatetimeIndex(df['time']))#.drop(columns=['time'])
         df = df[~df.index.duplicated(keep='first')]
         df = df.resample('H').asfreq()
-    
-        #print("-----------------1------------------")
-        
+            
         # fill missing value
         df[float_tag] = df[float_tag].astype('float')
         df['sbi'] = df['sbi'].apply(lambda x: round(x, 0))
 
-        #print("----------------2-------------------")
         for tag in fill_past_mean_tag:
             dfl = []
             ndf = df[tag]
@@ -180,19 +177,18 @@ def data_preprocess(df,ts_shift=False,normalize=False):
                 
             df[tag] = df[tag].fillna(0)
 
-        #print("-----------------3------------------")
+
         df = update_uvi_category(df)
         df = degToCompass(df)
         df = addComfortIndex(df)
         
-        #print("-----------------4------------------")
         #add features
         df['weekday'] = df.index.weekday.astype(str)
         df.weekday = df.weekday.apply(lambda x: 'wkdy_' + x )
         df['hours'] = df.index.hour.astype(str)
         df.hours = df.hours.apply(lambda x: 'hrs_' + x )
         
-        #print("-----------------5------------------")
+
         #one-hot encoding
         for tag in one_hot_tag:
             data_dum = pd.get_dummies(df[tag], sparse=True)
@@ -206,7 +202,7 @@ def data_preprocess(df,ts_shift=False,normalize=False):
             for tag in normalize_tag:
                 df[tag] = (df[tag] - df[tag].min()) / (df[tag].max()-df[tag].min())
             
-        #print("-----------------6------------------")
+
         # add holiday or not
         from workalendar.asia import Taiwan
         cal = Taiwan()

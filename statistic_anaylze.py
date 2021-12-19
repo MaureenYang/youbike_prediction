@@ -131,7 +131,7 @@ def predict_SARIMA_dask2(series, params = [(6,1,0),(0,1,1,24)], startd='20180601
     try:
         f_str = str(freq)+'H'
         for pred_date in pd.date_range(start=startd, end=endd,freq = f_str):
-            print('predict_SARIMA:', pred_date, 'freq:',f_str)
+            #print('predict_SARIMA:', pred_date, 'freq:',f_str)
             end_date = pred_date - dt.timedelta(hours=1)
             start_date = pred_date - dt.timedelta(days=7)
             pred_end_date = pred_date + dt.timedelta(hours=(freq-1))
@@ -165,7 +165,7 @@ def predict_SARIMA_dask2(series, params = [(6,1,0),(0,1,1,24)], startd='20180601
 
     return pred
 
-def predict_SARIMA(series, params = [(6,1,0),(0,1,1,24)], startd='20180601 00:00:00', endd='20180630 23:00:00', freq=1):
+def predict_SARIMA(series, sno ,params = [(6,1,0),(0,1,1,24)], startd='20180601 00:00:00', endd='20180630 23:00:00', freq=1):
 
     pred = pd.DataFrame()
     try:
@@ -188,11 +188,21 @@ def predict_SARIMA(series, params = [(6,1,0),(0,1,1,24)], startd='20180601 00:00
             best_fit = best_model.fit(disp=-1)
             prediction = best_fit.predict(start=pred_date_str, end=pred_end_date_str)
             pred = pd.concat([pred, prediction])
+            
     except Exception as e:
         print('Predict_SARIMA Error:', e)
-
+        pred.to_csv("error_tmp_"+str(sno).zfill(3)+'.csv')
     return pred
 
+def predict_SARIMA_from_file(sno):
+
+    res_path = "D:/youbike/code/ubike_refactor/v2021/statistic_csv/sarima_preidct_result/"
+    fname = "sarima_prediction_" + str(sno).zfill(3) + ".csv"
+    df = pd.read_csv(res_path + fname)
+    df['time'] = pd.to_datetime(df['Unnamed: 0'], format='%Y-%m-%d %H:%M:%S', errors='ignore')
+    df = df.set_index(df['time']).drop(columns=['Unnamed: 0','time'])
+    
+    return df
 
 #%%
 # Moving Average
@@ -273,24 +283,35 @@ def SARIMA_HyperParam_Training(train_ts):
 
 #%%
 def predict_result(ts_data, arima_params,date_list,station_no,freq_hr=1):
+    pred = None
+    try:
+        print("sno:", station_no)
+        test_start_date = date_list[2]
+        test_end_date = date_list[3]
+        
+        res_path = cfg.result_path+"statistic_csv/sarima_preidct_result/" 
+        #res_path = "D:/youbike/code/ubike_refactor/v2021/statistic_csv/sarima_preidct_result/"
+        ts_data = ts_data.asfreq('H')
+        print("sno:", station_no)
+        #pred = predict_SARIMA_dask2(ts_data, startd =test_start_date,endd=test_end_date, freq=freq_hr)
+        pred = predict_SARIMA(ts_data, station_no,startd =test_start_date,endd=test_end_date, freq=freq_hr)
+        #pred =  predict_SARIMA_from_file(station_no)
+        print("sno:", station_no)
+        #print(pred)
+        plot_name_str = res_path + "plot/sarima_prediction_" + str(station_no).zfill(3) +".png"
     
-
-    test_start_date = date_list[2]
-    test_end_date = date_list[3]
+        sarima_title = "SARIMA ({},{},{}) ({},{},{},{}), freq={}h Prediction".format(arima_params[0][0],arima_params[0][1],arima_params[0][2],
+                                                                                         arima_params[1][0],arima_params[1][1],arima_params[1][2],arima_params[1][3],1)
+        rmse = plot_prediction(sarima_title, ts_data, pred, plot_name=plot_name_str)
+        pred.to_csv(res_path + "sarima_prediction_" + str(station_no).zfill(3) +"__.csv")
+        return rmse
     
-    res_path = cfg.result_path+"statistic_csv/sarima_preidct_result/" #"D:/youbike/code/ubike_refactor/v2021/statistic_csv/sarima_preidct_result/"
-    ts_data = ts_data.asfreq('H')
-    #pred = predict_SARIMA_dask2(ts_data, startd =test_start_date,endd=test_end_date, freq=freq_hr)
-    pred = predict_SARIMA(ts_data, startd =test_start_date,endd=test_end_date, freq=freq_hr)
-    
-    print(pred)
-    plot_name_str = res_path + "plot/sarima_prediction_" + str(station_no).zfill(3) +".png"
-
-    sarima_title = "SARIMA ({},{},{}) ({},{},{},{}), freq={}h Prediction".format(arima_params[0][0],arima_params[0][1],arima_params[0][2],
-                                                                                     arima_params[1][0],arima_params[1][1],arima_params[1][2],arima_params[1][3],1)
-    #rmse = plot_prediction(sarima_title, ts_data, pred, plot_name=plot_name_str)
-    #pred.to_csv(res_path + "sarima_prediction_" + str(station_no).zfill(3) +".csv")
-    return rmse
+    except Exception as e:
+        print("sno:", station_no, " error:", e)
+        if pred != None:
+            pred.to_csv("sarima_prediction_" + str(station_no).zfill(3) +"_error.csv")
+            
+            
 
 #%%
 ''' configuration '''
@@ -305,30 +326,37 @@ filesinpath = os.listdir(filepath)
 
 train_start_date = '20200714 00:00:00'
 train_end_date = '20210131 23:00:00'
-test_start_date = '20210215 00:00:00'   #'20210201 00:00:00' 
-test_end_date = '20210215 00:00:00'#'20210611 18:00:00'
+test_start_date = '20210201 00:00:00' 
+test_end_date = '20210611 18:00:00'
 #test_end_date = '20210201 23:00:00'
 date_list = (train_start_date,train_end_date,test_start_date,test_end_date)
 ignore_list = [15, 20, 160, 198, 199, 200] # no station
 ignore_list2 = [28, 47, 58, 69, 99, 101 ,106 ,153 , 168 ,185, 190, 239, 240, 264, 306,311, 313, 378,382,383,387]
 
-station_list = [195]#[31,79,95,124,170,174,237,390]#set(range(369,384)) - set(ignore_list) -set(ignore_list2)
+station_list = [79]#[31,79,95,124,170,174,237,390]#set(range(369,384)) - set(ignore_list) -set(ignore_list2)
 if True:#__name__ == '__main__':
     
-    #date_list = (train_start_date,train_end_date,test_start_date,test_end_date)
+    date_list = (train_start_date,train_end_date,test_start_date,test_end_date)
     result_df = pd.DataFrame()
     problem_station = []
     res_time = {}
     for sta in station_list:
         try:
 
-            f = "sno_" + str(sta).zfill(3) +"_data.csv"
-            print("filename:", f)
-            df = pd.read_csv(filepath + f)
-            df['time'] = pd.to_datetime(df['time'], format='%Y-%m-%d %H:%M:%S', errors='ignore')
-            df = df.set_index(pd.DatetimeIndex(df['time']))
-            df = df.sort_index()
-            
+            if False:
+                f = "sno_" + str(sta).zfill(3) +"_data.csv"
+                print("filename:", f)
+                df = pd.read_csv(filepath + f)
+                df['time'] = pd.to_datetime(df['time'], format='%Y-%m-%d %H:%M:%S', errors='ignore')
+                df = df.set_index(pd.DatetimeIndex(df['time']))
+                df = df.sort_index()
+            else:
+                f = 'parsed_sno_'+str(sta).zfill(3)+'.csv'
+                print("filename:", f) 
+                df = pd.read_csv(cfg.csv_parsed_nor_sparsed_db_web_path + f)
+                df['time'] = pd.to_datetime(df['time'], format='%Y/%m/%d %H%M%S', errors='ignore')
+                df = df.set_index(pd.DatetimeIndex(df['time'])).drop(columns=['time'])
+                
             if plot_ts_fig:
                 plt.figure(figsize=((20,7)))
                 plt.title("sno {} - Time Series".format(sta))
@@ -381,7 +409,8 @@ if True:#__name__ == '__main__':
                 
             if arima_predict:
                 #read parameter from file
-                para_filepath = "D:/youbike/code/ubike_refactor/v2021/statistic_csv/arima_para_tun/"
+                #para_filepath = "D:/youbike/code/ubike_refactor/v2021/statistic_csv/arima_para_tun/"
+                para_filepath = "D:/git/youbike_prediction/result/statistic_csv/arima_para_tun/"
                 para_filename = "sarima_para_tuning_sno" + str(sta).zfill(3) +".csv"
                 para_df = pd.read_csv(para_filepath+para_filename)
                 para = para_df.loc[0]['parameters']
@@ -390,7 +419,8 @@ if True:#__name__ == '__main__':
                 print('arima_param:',arima_param)
                 start_time = time.time() 
                 
-                predict_result(ts_data,arima_param,date_list,sta)
+                rmse = predict_result(ts_data,arima_param,date_list,sta)
+                print('rmse:',rmse)
                 end_time = time.time()
                 optimizeSARIMA_time = (end_time - start_time)
                 print('spend time:', optimizeSARIMA_time)              

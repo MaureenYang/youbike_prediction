@@ -12,7 +12,7 @@ from sklearn.metrics import mean_squared_error
 import ub_config as cfg
 
 filepath = cfg.arima_result_path
-station_list = cfg.station_sno_list
+station_list = range(1,405)#cfg.station_sno_list
 #station_list = cfg.small_station_sno_list
 
 # Read all predict result and compare
@@ -52,7 +52,7 @@ res_df.to_csv("result_sarima.csv")
 #%%
 #generate answer:
 ans_f = ['result_answer.csv']
-files1 = ['result_lasso.csv' , 'result_ridge.csv', 'result_rf.csv']
+files1 = ['result/result_lasso.csv' , 'result/result_ridge.csv', 'result/result_rf.csv']
 files2 = ['result_sarima.csv']
 
 #for each model
@@ -73,10 +73,11 @@ for f in files1:
     pred_df['time'] = pd.to_datetime(pred_df['time'], format='%Y/%m/%d %H%M%S', errors='ignore')
     pred_df = pred_df.set_index(pd.DatetimeIndex(pred_df['time'])).drop(columns=['time'])
 
-    for col in pred_df.columns:   
+    for col in pred_df.columns:
+        print('col:',col)
         pidx = pred_df[col].index[pred_df[col].apply(np.isnan)]
         aidx = ans_df[col].index[ans_df[col].apply(np.isnan)]
-        print('col:',col)
+        
         if len(pidx) != 0 or len(aidx) != 0:
             #print('col:',col)
             #print(pidx)
@@ -112,7 +113,7 @@ for f in files2:
     f_df[f] = pd.Series(rmse_dict)
         
     
-    #f_df.to_csv('models_rmse.csv')
+#f_df.to_csv('models_rmse.csv')
 
 #%%
 
@@ -123,29 +124,35 @@ for f in files1:
     f3_df_dict[f] = pd.read_csv(f)
     
 for sno in station_list:
-    col_name = 'y_sbi_'+str(sno).zfill(3)
-    col_df = pd.DataFrame()
-    for f in files1:
-        pred_df = f3_df_dict[f]
-        pred_df['time'] = pd.to_datetime(pred_df['time'], format='%Y/%m/%d %H%M%S', errors='ignore')
-        pred_df = pred_df.set_index(pd.DatetimeIndex(pred_df['time'])).drop(columns=['time'])
-        
-        col_df[f] = pred_df[col_name]
-        
-        col_df.to_csv(cfg.model_result_path +"pred_result_sno_"+str(sno).zfill(3)+".csv")
+    try:
+        col_name = 'y_sbi_'+str(sno).zfill(3)
+        col_df = pd.DataFrame()
+        for f in files1:
+            pred_df = f3_df_dict[f]
+            pred_df['time'] = pd.to_datetime(pred_df['time'], format='%Y/%m/%d %H%M%S', errors='ignore')
+            pred_df = pred_df.set_index(pd.DatetimeIndex(pred_df['time'])).drop(columns=['time'])
+            
+            col_df[f] = pred_df[col_name]
+            
+            col_df.to_csv(cfg.model_result_path +"pred_result_sno_"+str(sno).zfill(3)+".csv")
+    except Exception as e:
+        print(e)
 
 #%%
 
 rmse_dict = {}
 for sno in station_list:
-    r_df = pd.read_csv(cfg.model_result_path +"pred_result_sno_"+str(sno).zfill(3)+".csv")
-    
-    r_df['avg'] = r_df.mean(axis=1)
-    rmse  = cal_rmse(ans_df['y_sbi_'+str(sno).zfill(3)],r_df['avg'])
-    rmse_dict['y_sbi_'+str(sno).zfill(3)] = rmse
+    try:
+        r_df = pd.read_csv(cfg.model_result_path +"pred_result_sno_"+str(sno).zfill(3)+".csv")
+        
+        r_df['avg'] = r_df.mean(axis=1)
+        rmse  = cal_rmse(ans_df['y_sbi_'+str(sno).zfill(3)],r_df['avg'])
+        rmse_dict['y_sbi_'+str(sno).zfill(3)] = rmse
+    except Exception as e:
+        print(e)
     
 f_df['avg'] = pd.Series(rmse_dict)
-#f_df.to_csv('models_rmse.csv')  
+f_df.to_csv('models_rmse.csv')  
     
     
 #%%

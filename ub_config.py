@@ -78,7 +78,7 @@ weather_station_list = [
 ignore_list = [15, 20, 160, 198, 199, 200] # no station
 ignore_list2 = [28, 47, 58, 69, 99, 101 ,106, 124 ,153 , 168, 174 ,185 ,190 ,229,237 ,239,240 ,264 ,306 ,311 ,313,330,346,378,382,383,387]
 ignore_list3 = [31,79,95,124,170,174,237,390]
-station_sno_list = list(set(range(1,405)) - set(ignore_list) - set(ignore_list2) - set(ignore_list3))
+station_sno_list = list(set(range(1,405)) - set(ignore_list)) #- set(ignore_list2) - set(ignore_list3))
 
 if True:
     small_sno = [39, 53, 69, 130, 172, 196, 205, 234, 239, 262, 264, 271, 280, 290, 295, 297, 300, 301, 320, 323, 324, 327, 330, 333, 334, 336, 340, 347, 348, 349, 354, 357, 372, 383, 388, 393, 395, 396, 402, 403]

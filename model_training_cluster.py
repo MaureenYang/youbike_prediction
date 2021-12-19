@@ -38,14 +38,14 @@ title_list = ['Lasso ','Ridge ','Random Forest ']
 #estimator_list = [lasso ]
 #title_list = ['Lasso ']
 
-estimator_list = [ridge ]
-title_list = ['Ridge ']
+#estimator_list = [ridge ]
+#title_list = ['Ridge ']
 
-#estimator_list = [rf ]
-#title_list = ['Random Forest ']
+estimator_list = [rf ]
+title_list = ['Random Forest ']
 
 
-station_list = [1]#cfg.station_sno_list
+station_list = cfg.station_sno_list
 #station_list = cfg.small_station_sno_list
 
 filepath = cfg.csv_parsed_db_web_path
@@ -90,7 +90,8 @@ def plot_prediction(title_str, series, startd, endd, pred, plot_pic=True,save_fi
 
 read_from_parsed = True
 
-def read_data(sno,normalized=True):
+def read_data(sno,normalized=False):
+    
     if read_from_parsed:
         f = 'parsed_sno_'+str(sno).zfill(3)+'.csv'
         print("filename:", f) 
@@ -99,14 +100,15 @@ def read_data(sno,normalized=True):
         df = df.set_index(pd.DatetimeIndex(df['time'])).drop(columns=['time'])
         
     else:
-        f = 'merged_sno_'+str(sno).zfill(3)+'_data.csv'
-        print("filename:", f)
-        df = pd.read_csv(cfg.csv_merged_db_web_path + f)
-        df = data_preprocess(df,normalize=normalized)
-        df['time'] = pd.to_datetime(df['time'], format='%Y/%m/%d %H%M%S', errors='ignore')
-        df = df.set_index(pd.DatetimeIndex(df['time'])).drop(columns=['time'])
+        if True:
+            f = 'merged_sno_'+str(sno).zfill(3)+'_data.csv'
+            print("filename:", f)
+            df = pd.read_csv(cfg.csv_merged_db_web_path + f)
+            df = data_preprocess(df,normalize=normalized)
+            df['time'] = pd.to_datetime(df['time'], format='%Y/%m/%d %H%M%S', errors='ignore')
+            df = df.set_index(pd.DatetimeIndex(df['time'])).drop(columns=['time'])
     
-    df = df.dropna()
+        df = df.dropna()
     return df
 
 def bool2dec(x):
@@ -227,7 +229,8 @@ test_end_date = '20210611 17:00:00'
 all_res_lst = []
 lasso_coef_df = pd.DataFrame()
 result_df_dict = {'ans' : pd.DataFrame()}
-
+n_tag = ['HUMD','PRES', 'TEMP', 'WDSE','td']
+range_df = pd.DataFrame()
 for cno, clst in cluster_dict.items():
     print("start to prepare data for cluster {}: {}".format(cno,clst))
     train_x = pd.DataFrame()
@@ -246,7 +249,7 @@ for cno, clst in cluster_dict.items():
         
         train_x = train_x.append(sta_train_x)
         train_y = train_y.append(sta_train_y)
-        
+    
     # Feature Selection
     print('current columns:',train_x.columns)
     print('number of columns:',len(train_x.columns))
@@ -263,7 +266,7 @@ for cno, clst in cluster_dict.items():
        'hrs_3', 'hrs_4', 'hrs_5', 'hrs_6', 'hrs_7', 'hrs_8', 'hrs_9',
        'holiday', 'sbi_1h', 'sbi_2h', 'sbi_3h', 'sbi_4h', 'sbi_5h', 'sbi_6h',
        'sbi_7h', 'sbi_8h', 'sbi_9h', 'sbi_10h', 'sbi_11h', 'sbi_12h', 'sbi_1d',
-       'sbi_2d', 'sbi_3d', 'sbi_4d', 'sbi_5d', 'sbi_6d', 'sbi_7d','station_id']
+       'sbi_2d', 'sbi_3d', 'sbi_4d', 'sbi_5d', 'sbi_6d', 'sbi_7d']#,'station_id']
    
     train_x = train_x[features]
     
@@ -294,15 +297,15 @@ for cno, clst in cluster_dict.items():
        'hrs_18', 'hrs_19', 'hrs_2', 'hrs_20', 'hrs_21', 'hrs_22', 'hrs_23',
        'hrs_3', 'hrs_4', 'hrs_5', 'hrs_6', 'hrs_7', 'hrs_8', 'hrs_9',
        'holiday']
-    '''
 
+    '''
     features = ['sbi','hrs_0', 'hrs_1', 'hrs_10',
        'hrs_11', 'hrs_12', 'hrs_13', 'hrs_14', 'hrs_15', 'hrs_16', 'hrs_17',
        'hrs_18', 'hrs_19', 'hrs_2', 'hrs_20', 'hrs_21', 'hrs_22', 'hrs_23',
        'hrs_3', 'hrs_4', 'hrs_5', 'hrs_6', 'hrs_7', 'hrs_8', 'hrs_9']
 
     features = features + ['HUMD','UVI']
-
+   
     #features = features + ['station_id']
     #features = features + ['lat', 'lng','tot','cat_hospital_500','cat_college_500','cat_train_500', 'cat_hospital_1000','cat_college_1000','cat_train_1000']
     #features = features + ['lat', 'lng']
@@ -355,11 +358,12 @@ for cno, clst in cluster_dict.items():
         print("current estimator{}:{}".format(i,title_list[i]))
         
         # start training model
+        '''
         start_time = time.time()
         indexing = None
         model, results, best_param, indexing = estimator(train_x_wo_t, train_y_wo_t,rfecv_en=False)
         end_time = time.time()    
-        
+        '''
         #label_name = train_x_wo_t.columns  
         #coef_lab = pd.DataFrame(model.coef_,index=label_name,columns=[sno])
         #lasso_coef_df = lasso_coef_df.append(coef_lab.T)
@@ -384,14 +388,14 @@ for cno, clst in cluster_dict.items():
             test_x = test_x[features]
             test_x_wo_t = test_x.reset_index().drop(columns=['time'])
             test_y_wo_t = test_y.reset_index().drop(columns=['time'])
-            
+            '''
             if indexing is not None:
                 sel_col = test_x_wo_t.columns[indexing]
                 new_test_x_wo_t = test_x_wo_t[sel_col]           
             else:
                 new_test_x_wo_t = test_x_wo_t
                 
-            print((new_test_x_wo_t.columns))
+            #print((new_test_x_wo_t.columns))
                     
             if estimator == xgb:
                 predict_y_wo_t = model.predict(new_test_x_wo_t.values)
@@ -399,20 +403,17 @@ for cno, clst in cluster_dict.items():
                 predict_y_wo_t = model.predict(new_test_x_wo_t)
             
             predict_y = pd.DataFrame(predict_y_wo_t, index=test_y.index)
-            
-            #pickle_file_name = "pickle/model_ridge_sno_" + str(sno).zfill(4) + ".pickle"
-            #with open(pickle_file_name, 'wb') as handle:
-            #    pickle.dump(model, handle, protocol=pickle.HIGHEST_PROTOCOL)            
+                     
             
             predict_y = predict_y.rename(columns={0: 'y_sbi'})
             stitle = title_list[i] + 'Prediction ,station(' + str(sno) +'), '+ 'sbi'
             rmse = plot_prediction(stitle,test_y, train_start_date,train_end_date,predict_y,plot_pic=False, save_fig=False)
             tot = station_info[station_info['sno'] == sno].tot
-            res_sno_dict[sno] = [rmse, (rmse/tot)]
-            
-            result_df_dict['ans']['y_sbi_' + str(sno).zfill(3)] = test_y.loc[predict_y.index]
+            res_sno_dict[sno] = [rmse, (rmse/tot.values[0])]
+            '''
+            result_df_dict['ans']['y_sbi_' + str(sno).zfill(3)] = test_y.loc[test_y.index]
 
-            
+        '''    
         res_dict ={}
         model_dict = {}
         res_dict['train_time'] = end_time - start_time
@@ -420,19 +421,46 @@ for cno, clst in cluster_dict.items():
         model_dict['cluster'] = {'cno':cno,'clist':clst}
         res_dict['model'] = model_dict
         res_dict['pred_rmse'] = res_sno_dict
-                
-        all_res_lst = all_res_lst + [res_dict]
         
+        all_res_lst = all_res_lst + [res_dict]
+        '''
+result_df_dict['ans'].to_csv("result_answer.csv")
 #%%
+if False:
+    sno_dic_lst = []
+    dict_sno = {}
+    for r in all_res_lst:
+        if (r['model']['cluster']['clist'][0] in dict_sno)  == False:
+            dict_sno[r['model']['cluster']['clist'][0]] = {r['model']['name']: r['pred_rmse'][r['model']['cluster']['clist'][0]][1]}
+        else:
+            if isinstance(dict_sno[r['model']['cluster']['clist'][0]], dict):
+                dict_sno[r['model']['cluster']['clist'][0]].update({r['model']['name']: r['pred_rmse'][r['model']['cluster']['clist'][0]][1]})
+            else:
+                dict_sno[r['model']['cluster']['clist'][0]] = {r['model']['name']: r['pred_rmse'][r['model']['cluster']['clist'][0]][1]}
+        print(dict_sno)
+        #print(r['model']['name'])}
+        #print(r['model']['cluster']['clist'][0])
+        #print(r['pred_rmse'][r['model']['cluster']['clist'][0]][1])
+        #sno_dic_lst = sno_dic_lst + [dict_sno]
+
+#newwww = pd.DataFrame(dict_sno)
+#print(newwww.T)
+#newwww.T.to_csv("ppppppercenage.csv")
+#%%
+
+
+'''
+print(range_df)
+range_df.to_csv("normalize_range.csv")
 if False:
     for i, estimator in enumerate(estimator_list):
         result_df_dict[title_list[i]].to_csv("result_" + title_list[i] +".csv")
 
 result_df_dict['ans'].to_csv("result_answer.csv")
-
+'''
 #%%
 # for small station, find the average RMSE
-if True:
+if False:
     for i, estimator in enumerate(estimator_list):
         small_rmse = [0,0]
         mid_rmse = [0,0]
